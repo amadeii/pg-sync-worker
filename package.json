@@ -1,0 +1,23 @@
+{
+  "name": "pg-sync-worker",
+  "version": "1.0.0",
+  "description": "Worker em Node.js para leitura periódica de dados no PostgreSQL.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "postgresql",
+    "worker",
+    "cron"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "node-cron": "^4.2.1",
+    "pg": "^8.21.0"
+  }
+}
