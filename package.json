@@ -6,7 +6,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "server": "node src/server.js"
+    "server": "node src/server.js",
+    "test:fdb": "node src/test-firebird.js"
   },
   "keywords": [
     "nodejs",
@@ -21,6 +22,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
+    "node-firebird": "^2.3.2",
     "pg": "^8.21.0"
   }
 }
