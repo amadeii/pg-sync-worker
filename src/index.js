@@ -8,6 +8,6 @@ cron.schedule('*/1 * * * *', async () => {
     try {
         await executarJob();
     } catch (error) {
-        console.error('Erro ao executar job:', error);
+        console.error('Erro ao executar job:', error.message);
     }
 });
