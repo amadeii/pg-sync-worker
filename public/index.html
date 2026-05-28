@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard da Automação</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <main class="container">
+        <header class="header">
+            <div>
+                <h1>Dashboard da Automação</h1>
+                <p>Monitoramento simples das tarefas processadas pelo worker.</p>
+            </div>
+
+            <button id="btnAtualizar">Atualizar dados</button>
+        </header>
+
+        <section class="cards">
+            <div class="card">
+                <span>Total</span>
+                <strong id="total">0</strong>
+            </div>
+
+            <div class="card">
+                <span>Pendentes</span>
+                <strong id="pendentes">0</strong>
+            </div>
+
+            <div class="card">
+                <span>Processando</span>
+                <strong id="processando">0</strong>
+            </div>
+
+            <div class="card">
+                <span>Processadas</span>
+                <strong id="processadas">0</strong>
+            </div>
+
+            <div class="card">
+                <span>Erros</span>
+                <strong id="erros">0</strong>
+            </div>
+        </section>
+
+        <section class="table-section">
+            <div class="section-title">
+                <h2>Tarefas</h2>
+                <span id="ultimaAtualizacao">Aguardando atualização...</span>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Descrição</th>
+                            <th>Status</th>
+                            <th>Tentativas</th>
+                            <th>Criado em</th>
+                            <th>Processado em</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tarefasBody">
+                        <tr>
+                            <td colspan="6">Carregando tarefas...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>
