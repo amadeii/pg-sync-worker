@@ -1,28 +1,70 @@
 const btnAtualizar = document.getElementById('btnAtualizar');
+const btnTema = document.getElementById('btnTema');
 
-const totalClientes = document.getElementById('totalClientes');
-const totalCidades = document.getElementById('totalCidades');
-const totalBairros = document.getElementById('totalBairros');
+const grupoAtual = document.getElementById('grupoAtual');
+const datasetAtual = document.getElementById('datasetAtual');
+const totalRegistros = document.getElementById('totalRegistros');
 const statusApi = document.getElementById('statusApi');
 
+const tituloTabela = document.getElementById('tituloTabela');
+const subtituloTabela = document.getElementById('subtituloTabela');
 const ultimaAtualizacao = document.getElementById('ultimaAtualizacao');
 
-const tudoBody = document.getElementById('tudoBody');
-const clientesBody = document.getElementById('clientesBody');
-const cidadesBody = document.getElementById('cidadesBody');
-const bairrosBody = document.getElementById('bairrosBody');
+const tabelaHead = document.getElementById('tabelaHead');
+const tabelaBody = document.getElementById('tabelaBody');
 
-const tabButtons = document.querySelectorAll('.tab-button');
-const tabContents = document.querySelectorAll('.tab-content');
+const workerTotal = document.getElementById('workerTotal');
+const workerPendentes = document.getElementById('workerPendentes');
+const workerProcessando = document.getElementById('workerProcessando');
+const workerProcessadas = document.getElementById('workerProcessadas');
+const workerErros = document.getElementById('workerErros');
+
+const groupButtons = document.querySelectorAll('.group-button');
+const datasetPanels = document.querySelectorAll('.dataset-panel');
+const datasetButtons = document.querySelectorAll('.dataset-button');
+
+let datasetSelecionado = document.querySelector('.dataset-button.active');
 
 async function buscarDados(url) {
     const resposta = await fetch(url);
 
     if (!resposta.ok) {
-        throw new Error(`Erro ao buscar dados em: ${url}`);
+        throw new Error(`Erro HTTP ${resposta.status} ao buscar dados.`);
     }
 
-    return resposta.json();
+    const json = await resposta.json();
+
+    if (!json || json.success !== true || !Array.isArray(json.data)) {
+        throw new Error('A API não retornou o JSON no padrão esperado.');
+    }
+
+    return json;
+}
+
+async function carregarResumoWorker() {
+    try {
+        const resposta = await fetch('/api/resumo');
+
+        if (!resposta.ok) {
+            throw new Error('Erro ao buscar resumo do worker.');
+        }
+
+        const resumo = await resposta.json();
+
+        workerTotal.textContent = resumo.total ?? 0;
+        workerPendentes.textContent = resumo.pendentes ?? 0;
+        workerProcessando.textContent = resumo.processando ?? 0;
+        workerProcessadas.textContent = resumo.processadas ?? 0;
+        workerErros.textContent = resumo.erros ?? 0;
+    } catch (error) {
+        console.error('Erro no resumo do worker:', error);
+
+        workerTotal.textContent = '-';
+        workerPendentes.textContent = '-';
+        workerProcessando.textContent = '-';
+        workerProcessadas.textContent = '-';
+        workerErros.textContent = '-';
+    }
 }
 
 function limparTexto(valor) {
@@ -30,190 +72,18 @@ function limparTexto(valor) {
         return '-';
     }
 
+    if (typeof valor === 'object') {
+        return JSON.stringify(valor);
+    }
+
     return valor;
 }
 
-function renderizarTudo(clientes, cidades, bairros) {
-    tudoBody.innerHTML = '';
-
-    const linhas = [];
-
-    clientes.forEach((cliente) => {
-        linhas.push({
-            tipo: 'Cliente',
-            id: cliente.ID,
-            nome: cliente.RAZAO,
-            complemento: cliente.FANTASIA || cliente.CLASSIFICACAO
-        });
-    });
-
-    cidades.forEach((cidade) => {
-        linhas.push({
-            tipo: 'Cidade',
-            id: cidade.ID,
-            nome: cidade.NOME || cidade.CIDADE || cidade.DESCRICAO,
-            complemento: cidade.UF || cidade.ESTADO
-        });
-    });
-
-    bairros.forEach((bairro) => {
-        linhas.push({
-            tipo: 'Bairro',
-            id: bairro.ID,
-            nome: bairro.NOME || bairro.BAIRRO || bairro.DESCRICAO,
-            complemento: bairro.CIDADE || bairro.ID_CIDADE || bairro.CIDADE_ID
-        });
-    });
-
-    if (linhas.length === 0) {
-        tudoBody.innerHTML = `
-            <tr>
-                <td colspan="4" class="empty-message">Nenhum dado encontrado.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    linhas.forEach((item) => {
-        const linha = document.createElement('tr');
-
-        linha.innerHTML = `
-            <td>${limparTexto(item.tipo)}</td>
-            <td>${limparTexto(item.id)}</td>
-            <td>${limparTexto(item.nome)}</td>
-            <td>${limparTexto(item.complemento)}</td>
-        `;
-
-        tudoBody.appendChild(linha);
-    });
-}
-
-function renderizarClientes(clientes) {
-    clientesBody.innerHTML = '';
-
-    if (!clientes || clientes.length === 0) {
-        clientesBody.innerHTML = `
-            <tr>
-                <td colspan="4" class="empty-message">Nenhum cliente encontrado.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    clientes.forEach((cliente) => {
-        const linha = document.createElement('tr');
-
-        linha.innerHTML = `
-            <td>${limparTexto(cliente.ID)}</td>
-            <td>${limparTexto(cliente.RAZAO)}</td>
-            <td>${limparTexto(cliente.FANTASIA)}</td>
-            <td>${limparTexto(cliente.CLASSIFICACAO)}</td>
-        `;
-
-        clientesBody.appendChild(linha);
-    });
-}
-
-function renderizarCidades(cidades) {
-    cidadesBody.innerHTML = '';
-
-    if (!cidades || cidades.length === 0) {
-        cidadesBody.innerHTML = `
-            <tr>
-                <td colspan="3" class="empty-message">Nenhuma cidade encontrada.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    cidades.forEach((cidade) => {
-        const linha = document.createElement('tr');
-
-        linha.innerHTML = `
-            <td>${limparTexto(cidade.ID)}</td>
-            <td>${limparTexto(cidade.NOME || cidade.CIDADE || cidade.DESCRICAO)}</td>
-            <td>${limparTexto(cidade.UF || cidade.ESTADO)}</td>
-        `;
-
-        cidadesBody.appendChild(linha);
-    });
-}
-
-function renderizarBairros(bairros) {
-    bairrosBody.innerHTML = '';
-
-    if (!bairros || bairros.length === 0) {
-        bairrosBody.innerHTML = `
-            <tr>
-                <td colspan="3" class="empty-message">Nenhum bairro encontrado.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    bairros.forEach((bairro) => {
-        const linha = document.createElement('tr');
-
-        linha.innerHTML = `
-            <td>${limparTexto(bairro.ID)}</td>
-            <td>${limparTexto(bairro.NOME || bairro.BAIRRO || bairro.DESCRICAO)}</td>
-            <td>${limparTexto(bairro.CIDADE || bairro.ID_CIDADE || bairro.CIDADE_ID)}</td>
-        `;
-
-        bairrosBody.appendChild(linha);
-    });
-}
-
-function mostrarCarregando() {
-    tudoBody.innerHTML = `
-        <tr>
-            <td colspan="4" class="empty-message">Carregando dados...</td>
-        </tr>
-    `;
-
-    clientesBody.innerHTML = `
-        <tr>
-            <td colspan="4" class="empty-message">Carregando clientes...</td>
-        </tr>
-    `;
-
-    cidadesBody.innerHTML = `
-        <tr>
-            <td colspan="3" class="empty-message">Carregando cidades...</td>
-        </tr>
-    `;
-
-    bairrosBody.innerHTML = `
-        <tr>
-            <td colspan="3" class="empty-message">Carregando bairros...</td>
-        </tr>
-    `;
-}
-
-function mostrarErro() {
-    tudoBody.innerHTML = `
-        <tr>
-            <td colspan="4" class="empty-message">Erro ao carregar os dados do Firebird.</td>
-        </tr>
-    `;
-
-    clientesBody.innerHTML = `
-        <tr>
-            <td colspan="4" class="empty-message">Erro ao carregar clientes.</td>
-        </tr>
-    `;
-
-    cidadesBody.innerHTML = `
-        <tr>
-            <td colspan="3" class="empty-message">Erro ao carregar cidades.</td>
-        </tr>
-    `;
-
-    bairrosBody.innerHTML = `
-        <tr>
-            <td colspan="3" class="empty-message">Erro ao carregar bairros.</td>
-        </tr>
-    `;
+function formatarNomeColuna(coluna) {
+    return coluna
+        .replaceAll('_', ' ')
+        .toLowerCase()
+        .replace(/\b\w/g, (letra) => letra.toUpperCase());
 }
 
 function atualizarHorario() {
@@ -221,73 +91,225 @@ function atualizarHorario() {
     ultimaAtualizacao.textContent = `Última atualização: ${agora}`;
 }
 
-async function carregarDashboard() {
-    console.log('Carregando dashboard Firebird...');
+function mostrarCarregando() {
+    tabelaHead.innerHTML = `
+        <tr>
+            <th>Carregando</th>
+        </tr>
+    `;
+
+    tabelaBody.innerHTML = `
+        <tr>
+            <td class="empty-message">Buscando dados no Firebird...</td>
+        </tr>
+    `;
+}
+
+function mostrarErro(mensagem) {
+    tabelaHead.innerHTML = `
+        <tr>
+            <th>Erro</th>
+        </tr>
+    `;
+
+    tabelaBody.innerHTML = `
+        <tr>
+            <td class="empty-message">${mensagem}</td>
+        </tr>
+    `;
+}
+
+function renderizarTabelaGenerica(registros) {
+    tabelaHead.innerHTML = '';
+    tabelaBody.innerHTML = '';
+
+    if (!registros || registros.length === 0) {
+        tabelaHead.innerHTML = `
+            <tr>
+                <th>Sem dados</th>
+            </tr>
+        `;
+
+        tabelaBody.innerHTML = `
+            <tr>
+                <td class="empty-message">Nenhum registro encontrado.</td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    const colunas = Object.keys(registros[0]);
+    const linhaCabecalho = document.createElement('tr');
+
+    colunas.forEach((coluna) => {
+        const th = document.createElement('th');
+        th.textContent = formatarNomeColuna(coluna);
+        linhaCabecalho.appendChild(th);
+    });
+
+    tabelaHead.appendChild(linhaCabecalho);
+
+    registros.forEach((registro) => {
+        const linha = document.createElement('tr');
+
+        colunas.forEach((coluna) => {
+            const td = document.createElement('td');
+            td.textContent = limparTexto(registro[coluna]);
+            linha.appendChild(td);
+        });
+
+        tabelaBody.appendChild(linha);
+    });
+}
+
+function atualizarCards({ grupo, dataset, total, status }) {
+    grupoAtual.textContent = grupo;
+    datasetAtual.textContent = dataset;
+    totalRegistros.textContent = total;
+    statusApi.textContent = status;
+}
+
+async function carregarDataset(button) {
+    if (!button) {
+        return;
+    }
+
+    const url = button.dataset.url;
+    const titulo = button.dataset.title;
+    const grupo = button.dataset.groupName;
+
+    datasetSelecionado = button;
 
     try {
         btnAtualizar.disabled = true;
         btnAtualizar.textContent = 'Atualizando...';
-        statusApi.textContent = 'Carregando';
+
+        tituloTabela.textContent = titulo;
+        subtituloTabela.textContent = '';
+
+        atualizarCards({
+            grupo,
+            dataset: titulo,
+            total: 0,
+            status: 'Carregando',
+        });
 
         mostrarCarregando();
 
-        const [clientesResposta, cidadesResposta, bairrosResposta] = await Promise.all([
-            buscarDados('/api/fdb/clientes'),
-            buscarDados('/api/fdb/localizacao/cidades'),
-            buscarDados('/api/fdb/localizacao/bairros')
-        ]);
+        const resposta = await buscarDados(url);
+        const registros = resposta.data || [];
 
-        const clientes = clientesResposta.data || [];
-        const cidades = cidadesResposta.data || [];
-        const bairros = bairrosResposta.data || [];
+        renderizarTabelaGenerica(registros);
 
-        totalClientes.textContent = clientesResposta.total || clientes.length;
-        totalCidades.textContent = cidadesResposta.total || cidades.length;
-        totalBairros.textContent = bairrosResposta.total || bairros.length;
-
-        renderizarTudo(clientes, cidades, bairros);
-        renderizarClientes(clientes);
-        renderizarCidades(cidades);
-        renderizarBairros(bairros);
-
-        statusApi.textContent = 'Online';
+        atualizarCards({
+            grupo,
+            dataset: titulo,
+            total: resposta.total ?? registros.length,
+            status: 'Online',
+        });
 
         atualizarHorario();
     } catch (error) {
         console.error(error);
 
-        statusApi.textContent = 'Erro';
-        ultimaAtualizacao.textContent = 'Falha ao atualizar os dados.';
+        atualizarCards({
+            grupo,
+            dataset: titulo,
+            total: 0,
+            status: 'Erro',
+        });
 
-        mostrarErro();
+        mostrarErro(error.message);
+        ultimaAtualizacao.textContent = 'Falha ao atualizar os dados.';
     } finally {
         btnAtualizar.disabled = false;
         btnAtualizar.textContent = 'Atualizar dados';
     }
 }
 
-tabButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-        const tabSelecionada = button.dataset.tab;
+function ativarDataset(button) {
+    datasetButtons.forEach((item) => {
+        item.classList.remove('active');
+    });
 
-        tabButtons.forEach((btn) => {
-            btn.classList.remove('active');
-        });
+    button.classList.add('active');
+}
 
-        tabContents.forEach((content) => {
-            content.classList.remove('active');
-        });
+function ativarGrupo(groupId) {
+    groupButtons.forEach((button) => {
+        button.classList.remove('active');
+    });
 
-        button.classList.add('active');
+    datasetPanels.forEach((panel) => {
+        panel.classList.remove('active');
+    });
 
-        const sectionSelecionada = document.getElementById(`tab-${tabSelecionada}`);
+    const groupButton = document.querySelector(`[data-group="${groupId}"]`);
+    const groupPanel = document.getElementById(`group-${groupId}`);
 
-        if (sectionSelecionada) {
-            sectionSelecionada.classList.add('active');
+    if (groupButton) {
+        groupButton.classList.add('active');
+    }
+
+    if (groupPanel) {
+        groupPanel.classList.add('active');
+
+        const primeiroDatasetDoGrupo = groupPanel.querySelector('.dataset-button');
+
+        if (primeiroDatasetDoGrupo) {
+            ativarDataset(primeiroDatasetDoGrupo);
+            carregarDataset(primeiroDatasetDoGrupo);
         }
+    }
+}
+
+function aplicarTemaSalvo() {
+    const temaSalvo = localStorage.getItem('tema-dashboard');
+
+    if (temaSalvo === 'escuro') {
+        document.body.classList.add('dark-mode');
+        btnTema.textContent = '☀️ Modo claro';
+    } else {
+        document.body.classList.remove('dark-mode');
+        btnTema.textContent = '🌙 Modo escuro';
+    }
+}
+
+function alternarTema() {
+    const modoEscuroAtivo = document.body.classList.toggle('dark-mode');
+
+    if (modoEscuroAtivo) {
+        localStorage.setItem('tema-dashboard', 'escuro');
+        btnTema.textContent = '☀️ Modo claro';
+    } else {
+        localStorage.setItem('tema-dashboard', 'claro');
+        btnTema.textContent = '🌙 Modo escuro';
+    }
+}
+
+btnTema.addEventListener('click', alternarTema);
+
+groupButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        const groupId = button.dataset.group;
+        ativarGrupo(groupId);
     });
 });
 
-btnAtualizar.addEventListener('click', carregarDashboard);
+datasetButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        ativarDataset(button);
+        carregarDataset(button);
+    });
+});
 
-carregarDashboard();
+btnAtualizar.addEventListener('click', () => {
+    carregarDataset(datasetSelecionado);
+    carregarResumoWorker();
+});
+
+aplicarTemaSalvo();
+
+carregarDataset(datasetSelecionado);
+carregarResumoWorker();

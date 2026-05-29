@@ -13,130 +13,240 @@
         <header class="header">
             <div>
                 <h1>Dashboard Firebird</h1>
-                <p>Visualização dos dados lidos diretamente do banco Firebird.</p>
+                <p>Visualização dos dados lidos diretamente do banco Firebird em formato JSON.</p>
             </div>
 
-            <button id="btnAtualizar">Atualizar dados</button>
+            <div class="header-actions">
+                <button id="btnTema" type="button">🌙 Modo escuro</button>
+                <button id="btnAtualizar">Atualizar dados</button>
+            </div>
         </header>
 
         <section class="cards">
             <div class="card">
-                <span>Clientes</span>
-                <strong id="totalClientes">0</strong>
+                <span>Grupo atual</span>
+                <strong id="grupoAtual">-</strong>
             </div>
 
             <div class="card">
-                <span>Cidades</span>
-                <strong id="totalCidades">0</strong>
+                <span>Dados atuais</span>
+                <strong id="datasetAtual">-</strong>
             </div>
 
             <div class="card">
-                <span>Bairros</span>
-                <strong id="totalBairros">0</strong>
+                <span>Total retornado</span>
+                <strong id="totalRegistros">0</strong>
             </div>
 
             <div class="card">
-                <span>Status</span>
+                <span>Status API</span>
                 <strong id="statusApi">---</strong>
             </div>
         </section>
 
-        <section class="tabs">
-            <button class="tab-button active" data-tab="tudo">Tudo</button>
-            <button class="tab-button" data-tab="clientes">Clientes</button>
-            <button class="tab-button" data-tab="cidades">Cidades</button>
-            <button class="tab-button" data-tab="bairros">Bairros</button>
+        <section class="worker-panel">
+            <div class="worker-title">
+                <div>
+                    <h2>Monitoramento do Worker</h2>
+                    <p>Status das tarefas processadas pela automação.</p>
+                </div>
+            </div>
+
+            <div class="worker-status">
+                <div class="worker-card">
+                    <span>Total tarefas</span>
+                    <strong id="workerTotal">0</strong>
+                </div>
+
+                <div class="worker-card">
+                    <span>Pendentes</span>
+                    <strong id="workerPendentes">0</strong>
+                </div>
+
+                <div class="worker-card">
+                    <span>Processando</span>
+                    <strong id="workerProcessando">0</strong>
+                </div>
+
+                <div class="worker-card">
+                    <span>Processadas</span>
+                    <strong id="workerProcessadas">0</strong>
+                </div>
+
+                <div class="worker-card">
+                    <span>Erros</span>
+                    <strong id="workerErros">0</strong>
+                </div>
+            </div>
         </section>
 
-        <section class="table-section tab-content active" id="tab-tudo">
+        <section class="group-tabs">
+            <button class="group-button active" data-group="cadastros">Cadastros</button>
+            <button class="group-button" data-group="localizacao">Localização</button>
+            <button class="group-button" data-group="estoque">Estoque</button>
+            <button class="group-button" data-group="fiscal">Fiscal</button>
+            <button class="group-button" data-group="pedidos">Pedidos</button>
+            <button class="group-button" data-group="financeiro">Financeiro</button>
+        </section>
+
+        <section class="dataset-panel active" id="group-cadastros">
+            <button class="dataset-button active" data-title="Clientes" data-group-name="Cadastros"
+                data-url="/api/fdb/clientes">
+                Clientes
+            </button>
+
+            <button class="dataset-button" data-title="Fornecedores" data-group-name="Cadastros"
+                data-url="/api/fdb/dados/fornecedores">
+                Fornecedores
+            </button>
+
+            <button class="dataset-button" data-title="Vendedores" data-group-name="Cadastros"
+                data-url="/api/fdb/dados/vendedores">
+                Vendedores
+            </button>
+
+            <button class="dataset-button" data-title="Empresa" data-group-name="Cadastros"
+                data-url="/api/fdb/dados/empresa">
+                Empresa
+            </button>
+        </section>
+
+        <section class="dataset-panel" id="group-localizacao">
+            <button class="dataset-button" data-title="Cidades" data-group-name="Localização"
+                data-url="/api/fdb/localizacao/cidades">
+                Cidades
+            </button>
+
+            <button class="dataset-button" data-title="Bairros" data-group-name="Localização"
+                data-url="/api/fdb/localizacao/bairros">
+                Bairros
+            </button>
+        </section>
+
+        <section class="dataset-panel" id="group-estoque">
+            <button class="dataset-button" data-title="Estoque" data-group-name="Estoque"
+                data-url="/api/fdb/dados/estoque">
+                Estoque
+            </button>
+        </section>
+
+        <section class="dataset-panel" id="group-fiscal">
+            <button class="dataset-button" data-title="Notas Fiscais" data-group-name="Fiscal"
+                data-url="/api/fdb/dados/notas-fiscais">
+                Notas Fiscais
+            </button>
+
+            <button class="dataset-button" data-title="Produtos da Nota" data-group-name="Fiscal"
+                data-url="/api/fdb/dados/notas-produtos">
+                Produtos da Nota
+            </button>
+        </section>
+
+        <section class="dataset-panel" id="group-pedidos">
+            <button class="dataset-button" data-title="Pedidos" data-group-name="Pedidos"
+                data-url="/api/fdb/dados/pedidos">
+                Pedidos
+            </button>
+
+            <button class="dataset-button" data-title="Detalhes do Pedido" data-group-name="Pedidos"
+                data-url="/api/fdb/dados/pedidos-detalhes">
+                Detalhes do Pedido
+            </button>
+        </section>
+
+        <section class="dataset-panel" id="group-financeiro">
+            <button class="dataset-button" data-title="Contas a Receber - Duplicatas" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-receber/duplicatas">
+                Receber: Duplicatas
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Receber - Duplicatas Parciais"
+                data-group-name="Financeiro" data-url="/api/fdb/financeiro/contas-receber/duplicatas-parciais">
+                Receber: Parciais
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Receber - Tipos de Documento"
+                data-group-name="Financeiro" data-url="/api/fdb/financeiro/contas-receber/tipos-documento">
+                Receber: Tipos Documento
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Receber - Cartões" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-receber/cartoes">
+                Receber: Cartões
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Receber - Boletos Anexos" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-receber/boletos-anexos">
+                Receber: Boletos Anexos
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Receber - Boletos Email" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-receber/boletos-email">
+                Receber: Boletos Email
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Receber - Boletos Fatura" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-receber/boletos-fatura">
+                Receber: Boletos Fatura
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Duplicatas" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-pagar/duplicatas">
+                Pagar: Duplicatas
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Duplicatas Parciais"
+                data-group-name="Financeiro" data-url="/api/fdb/financeiro/contas-pagar/duplicatas-parciais">
+                Pagar: Parciais
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Conferências" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-pagar/conferencias">
+                Pagar: Conferências
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Conferências Itens" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-pagar/conferencias-itens">
+                Pagar: Conferências Itens
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Divergências Fiscais"
+                data-group-name="Financeiro" data-url="/api/fdb/financeiro/contas-pagar/divergencias-fiscais">
+                Pagar: Divergências
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Itens" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-pagar/itens">
+                Pagar: Itens
+            </button>
+
+            <button class="dataset-button" data-title="Contas a Pagar - Notas" data-group-name="Financeiro"
+                data-url="/api/fdb/financeiro/contas-pagar/notas">
+                Pagar: Notas
+            </button>
+        </section>
+
+        <section class="table-section">
             <div class="section-title">
-                <h2>Todos os dados</h2>
+                <div>
+                    <h2 id="tituloTabela">Clientes</h2>
+                    <p id="subtituloTabela"></p>
+                </div>
+
                 <span id="ultimaAtualizacao">Aguardando atualização...</span>
             </div>
 
             <div class="table-wrapper">
                 <table>
-                    <thead>
+                    <thead id="tabelaHead">
                         <tr>
-                            <th>Tipo</th>
-                            <th>ID</th>
-                            <th>Nome / Descrição</th>
-                            <th>Complemento</th>
+                            <th>Aguardando dados</th>
                         </tr>
                     </thead>
-                    <tbody id="tudoBody">
-                        <tr>
-                            <td colspan="4">Carregando dados...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
 
-        <section class="table-section tab-content" id="tab-clientes">
-            <div class="section-title">
-                <h2>Clientes do Firebird</h2>
-            </div>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
+                    <tbody id="tabelaBody">
                         <tr>
-                            <th>ID</th>
-                            <th>Razão Social</th>
-                            <th>Fantasia</th>
-                            <th>Classificação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="clientesBody">
-                        <tr>
-                            <td colspan="4">Carregando clientes...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="table-section tab-content" id="tab-cidades">
-            <div class="section-title">
-                <h2>Cidades</h2>
-            </div>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cidade</th>
-                            <th>UF</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cidadesBody">
-                        <tr>
-                            <td colspan="3">Carregando cidades...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="table-section tab-content" id="tab-bairros">
-            <div class="section-title">
-                <h2>Bairros</h2>
-            </div>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Bairro</th>
-                            <th>Cidade</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bairrosBody">
-                        <tr>
-                            <td colspan="3">Carregando bairros...</td>
+                            <td class="empty-message">Carregando dados...</td>
                         </tr>
                     </tbody>
                 </table>
