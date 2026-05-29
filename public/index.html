@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard da Automação</title>
+    <title>Dashboard Firebird</title>
     <link rel="stylesheet" href="./style.css" />
 </head>
 
@@ -12,8 +12,8 @@
     <main class="container">
         <header class="header">
             <div>
-                <h1>Dashboard da Automação</h1>
-                <p>Monitoramento simples das tarefas processadas pelo worker.</p>
+                <h1>Dashboard Firebird</h1>
+                <p>Visualização dos dados lidos diretamente do banco Firebird.</p>
             </div>
 
             <button id="btnAtualizar">Atualizar dados</button>
@@ -21,34 +21,36 @@
 
         <section class="cards">
             <div class="card">
-                <span>Total</span>
-                <strong id="total">0</strong>
+                <span>Clientes</span>
+                <strong id="totalClientes">0</strong>
             </div>
 
             <div class="card">
-                <span>Pendentes</span>
-                <strong id="pendentes">0</strong>
+                <span>Cidades</span>
+                <strong id="totalCidades">0</strong>
             </div>
 
             <div class="card">
-                <span>Processando</span>
-                <strong id="processando">0</strong>
+                <span>Bairros</span>
+                <strong id="totalBairros">0</strong>
             </div>
 
             <div class="card">
-                <span>Processadas</span>
-                <strong id="processadas">0</strong>
-            </div>
-
-            <div class="card">
-                <span>Erros</span>
-                <strong id="erros">0</strong>
+                <span>Status</span>
+                <strong id="statusApi">---</strong>
             </div>
         </section>
 
-        <section class="table-section">
+        <section class="tabs">
+            <button class="tab-button active" data-tab="tudo">Tudo</button>
+            <button class="tab-button" data-tab="clientes">Clientes</button>
+            <button class="tab-button" data-tab="cidades">Cidades</button>
+            <button class="tab-button" data-tab="bairros">Bairros</button>
+        </section>
+
+        <section class="table-section tab-content active" id="tab-tudo">
             <div class="section-title">
-                <h2>Tarefas</h2>
+                <h2>Todos os dados</h2>
                 <span id="ultimaAtualizacao">Aguardando atualização...</span>
             </div>
 
@@ -56,17 +58,85 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Tipo</th>
                             <th>ID</th>
-                            <th>Descrição</th>
-                            <th>Status</th>
-                            <th>Tentativas</th>
-                            <th>Criado em</th>
-                            <th>Processado em</th>
+                            <th>Nome / Descrição</th>
+                            <th>Complemento</th>
                         </tr>
                     </thead>
-                    <tbody id="tarefasBody">
+                    <tbody id="tudoBody">
                         <tr>
-                            <td colspan="6">Carregando tarefas...</td>
+                            <td colspan="4">Carregando dados...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-section tab-content" id="tab-clientes">
+            <div class="section-title">
+                <h2>Clientes do Firebird</h2>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Razão Social</th>
+                            <th>Fantasia</th>
+                            <th>Classificação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientesBody">
+                        <tr>
+                            <td colspan="4">Carregando clientes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-section tab-content" id="tab-cidades">
+            <div class="section-title">
+                <h2>Cidades</h2>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cidade</th>
+                            <th>UF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cidadesBody">
+                        <tr>
+                            <td colspan="3">Carregando cidades...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-section tab-content" id="tab-bairros">
+            <div class="section-title">
+                <h2>Bairros</h2>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Bairro</th>
+                            <th>Cidade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bairrosBody">
+                        <tr>
+                            <td colspan="3">Carregando bairros...</td>
                         </tr>
                     </tbody>
                 </table>
