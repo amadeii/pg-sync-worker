@@ -65,7 +65,7 @@ export async function listarPedidoDetalhes() {
 
 export async function listarVendedores() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT 
         FROM VENDEDOR
     `);
 

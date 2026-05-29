@@ -101,7 +101,7 @@ export async function listarContasPagarItens() {
 
 export async function listarContasPagarNotas() {
     return consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT *
         FROM CPGNOTA
     `);
 }
