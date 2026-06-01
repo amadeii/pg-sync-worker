@@ -1,11 +1,14 @@
 import { pool } from './database.js';
+import { logSync, logSyncError } from './logger.js';
+import { registrarSyncHistory } from './services/sync-history.service.js';
 
 export async function executarJob() {
-    const agora = new Date().toLocaleString('pt-BR');
+    const inicio = Date.now();
 
-    console.log(`[${agora}] Buscando tarefas pendentes...`);
+    logSync('Iniciando busca de tarefas pendentes');
 
-    const resultado = await pool.query(`
+    try {
+        const resultado = await pool.query(`
     SELECT *
     FROM tarefas
     WHERE status = 'pendente'
@@ -13,14 +16,21 @@ export async function executarJob() {
     LIMIT 10
   `);
 
-    const tarefas = resultado.rows;
+        const tarefas = resultado.rows;
 
-    console.log(`Tarefas encontradas: ${tarefas.length}`);
+        logSync('Tarefas pendentes encontradas', {
+            total: tarefas.length,
+        });
 
-    for (const tarefa of tarefas) {
-        console.log(`Processando tarefa ${tarefa.id}: ${tarefa.descricao}`);
+        for (const tarefa of tarefas) {
+            const inicioTarefa = Date.now();
 
-        await pool.query(`
+            logSync('Processando tarefa', {
+                tarefaId: tarefa.id,
+                descricao: tarefa.descricao,
+            });
+
+            await pool.query(`
       UPDATE tarefas
       SET 
         status = 'processado',
@@ -28,6 +38,36 @@ export async function executarJob() {
       WHERE id = $1
     `, [tarefa.id]);
 
-        console.log(`Tarefa ${tarefa.id} processada com sucesso.`);
+            logSync('Tarefa processada com sucesso', {
+                tarefaId: tarefa.id,
+                durationMs: Date.now() - inicioTarefa,
+            });
+        }
+
+        logSync('Execução do job concluída', {
+            total: tarefas.length,
+            durationMs: Date.now() - inicio,
+        });
+
+        await registrarSyncHistory({
+            tabela: 'tarefas',
+            quantidadeRegistros: tarefas.length,
+            duracaoMs: Date.now() - inicio,
+            status: 'sucesso',
+        });
+    } catch (error) {
+        logSyncError('Erro ao executar job de sincronização', error, {
+            durationMs: Date.now() - inicio,
+        });
+
+        await registrarSyncHistory({
+            tabela: 'tarefas',
+            quantidadeRegistros: 0,
+            duracaoMs: Date.now() - inicio,
+            status: 'erro',
+            erro: error.message,
+        });
+
+        throw error;
     }
 }

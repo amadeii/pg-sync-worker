@@ -17,7 +17,7 @@
             </div>
 
             <div class="header-actions">
-                <button id="btnTema" type="button">🌙 Modo escuro</button>
+                <button id="btnTema" type="button" aria-label="Ativar modo escuro">Modo escuro</button>
                 <button id="btnAtualizar">Atualizar dados</button>
             </div>
         </header>
@@ -77,6 +77,34 @@
                     <span>Erros</span>
                     <strong id="workerErros">0</strong>
                 </div>
+            </div>
+        </section>
+
+        <section class="history-panel">
+            <div class="worker-title">
+                <div>
+                    <h2>Histórico de Sincronizações</h2>
+                    <p>Últimas execuções registradas no PostgreSQL.</p>
+                </div>
+            </div>
+
+            <div class="history-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tabela</th>
+                            <th>Registros</th>
+                            <th>Duração</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="syncHistoryBody">
+                        <tr>
+                            <td colspan="5" class="empty-message">Carregando histórico...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 

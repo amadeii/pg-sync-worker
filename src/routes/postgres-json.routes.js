@@ -1,20 +1,24 @@
-const express = require('express');
+import { Router } from 'express';
 
-const {
+import {
     limparTabelaJsonRaw,
     salvarJsonRaw,
     listarJsonRaw,
     contarJsonRaw,
-} = require('../services/postgres-json.service');
+} from '../services/postgres-json.service.js';
+import { logError, logSync } from '../logger.js';
 
-const router = express.Router();
+const router = Router();
 
 router.post('/:tabelaOrigem/salvar-json', async (req, res) => {
     try {
         const { tabelaOrigem } = req.params;
         const dados = req.body;
 
-        console.log(`Recebendo JSON para salvar no PostgreSQL: ${tabelaOrigem}`);
+        logSync(`Recebendo JSON para salvar no PostgreSQL: ${tabelaOrigem}`, {
+            tabela: tabelaOrigem,
+            quantidadeRegistros: Array.isArray(dados) ? dados.length : 0,
+        });
 
         await limparTabelaJsonRaw(tabelaOrigem);
 
@@ -27,7 +31,9 @@ router.post('/:tabelaOrigem/salvar-json', async (req, res) => {
             total_inserido: resultado.inseridos,
         });
     } catch (error) {
-        console.error('Erro ao salvar JSON no PostgreSQL:', error);
+        logError('Erro ao salvar JSON no PostgreSQL', error, {
+            tabelaOrigem: req.params.tabelaOrigem,
+        });
 
         res.status(500).json({
             erro: 'Erro ao salvar JSON no PostgreSQL',
@@ -47,7 +53,9 @@ router.get('/:tabelaOrigem/resumo', async (req, res) => {
             total: resumo.total,
         });
     } catch (error) {
-        console.error('Erro ao contar JSON no PostgreSQL:', error);
+        logError('Erro ao contar JSON no PostgreSQL', error, {
+            tabelaOrigem: req.params.tabelaOrigem,
+        });
 
         res.status(500).json({
             erro: 'Erro ao contar JSON no PostgreSQL',
@@ -60,7 +68,7 @@ router.get('/:tabelaOrigem', async (req, res) => {
     try {
         const { tabelaOrigem } = req.params;
 
-        const limit = Number(req.query.limit) || 50;
+        const limit = Math.min(Number(req.query.limit) || 50, 100);
         const offset = Number(req.query.offset) || 0;
 
         const dados = await listarJsonRaw({
@@ -77,7 +85,9 @@ router.get('/:tabelaOrigem', async (req, res) => {
             dados,
         });
     } catch (error) {
-        console.error('Erro ao listar JSON do PostgreSQL:', error);
+        logError('Erro ao listar JSON do PostgreSQL', error, {
+            tabelaOrigem: req.params.tabelaOrigem,
+        });
 
         res.status(500).json({
             erro: 'Erro ao listar JSON do PostgreSQL',
@@ -86,4 +96,4 @@ router.get('/:tabelaOrigem', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

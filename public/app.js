@@ -18,6 +18,7 @@ const workerPendentes = document.getElementById('workerPendentes');
 const workerProcessando = document.getElementById('workerProcessando');
 const workerProcessadas = document.getElementById('workerProcessadas');
 const workerErros = document.getElementById('workerErros');
+const syncHistoryBody = document.getElementById('syncHistoryBody');
 
 const groupButtons = document.querySelectorAll('.group-button');
 const datasetPanels = document.querySelectorAll('.dataset-panel');
@@ -64,6 +65,71 @@ async function carregarResumoWorker() {
         workerProcessando.textContent = '-';
         workerProcessadas.textContent = '-';
         workerErros.textContent = '-';
+    }
+}
+
+function formatarData(valor) {
+    if (!valor) {
+        return '-';
+    }
+
+    return new Date(valor).toLocaleString('pt-BR');
+}
+
+function formatarDuracao(ms) {
+    const duracao = Number(ms) || 0;
+
+    if (duracao < 1000) {
+        return `${duracao} ms`;
+    }
+
+    return `${(duracao / 1000).toFixed(2)} s`;
+}
+
+async function carregarHistoricoSync() {
+    try {
+        const resposta = await fetch('/api/sync-history?limit=10');
+
+        if (!resposta.ok) {
+            throw new Error('Erro ao buscar histórico de sincronizações.');
+        }
+
+        const json = await resposta.json();
+        const registros = json.data || [];
+
+        syncHistoryBody.innerHTML = '';
+
+        if (registros.length === 0) {
+            syncHistoryBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-message">Nenhuma sincronização registrada.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        registros.forEach((registro) => {
+            const linha = document.createElement('tr');
+            const status = String(registro.status || '').toLowerCase();
+
+            linha.innerHTML = `
+                <td>${formatarData(registro.data_execucao)}</td>
+                <td>${limparTexto(registro.tabela)}</td>
+                <td>${limparTexto(registro.quantidade_registros)}</td>
+                <td>${formatarDuracao(registro.duracao_ms)}</td>
+                <td><span class="status-badge ${status === 'sucesso' ? 'success' : 'error'}">${limparTexto(registro.status)}</span></td>
+            `;
+
+            syncHistoryBody.appendChild(linha);
+        });
+    } catch (error) {
+        console.error('Erro no histórico de sincronizações:', error);
+
+        syncHistoryBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty-message">Falha ao carregar histórico.</td>
+            </tr>
+        `;
     }
 }
 
@@ -269,10 +335,12 @@ function aplicarTemaSalvo() {
 
     if (temaSalvo === 'escuro') {
         document.body.classList.add('dark-mode');
-        btnTema.textContent = '☀️ Modo claro';
+        btnTema.textContent = 'Modo claro';
+        btnTema.setAttribute('aria-label', 'Ativar modo claro');
     } else {
         document.body.classList.remove('dark-mode');
-        btnTema.textContent = '🌙 Modo escuro';
+        btnTema.textContent = 'Modo escuro';
+        btnTema.setAttribute('aria-label', 'Ativar modo escuro');
     }
 }
 
@@ -281,10 +349,12 @@ function alternarTema() {
 
     if (modoEscuroAtivo) {
         localStorage.setItem('tema-dashboard', 'escuro');
-        btnTema.textContent = '☀️ Modo claro';
+        btnTema.textContent = 'Modo claro';
+        btnTema.setAttribute('aria-label', 'Ativar modo claro');
     } else {
         localStorage.setItem('tema-dashboard', 'claro');
-        btnTema.textContent = '🌙 Modo escuro';
+        btnTema.textContent = 'Modo escuro';
+        btnTema.setAttribute('aria-label', 'Ativar modo escuro');
     }
 }
 
@@ -307,9 +377,11 @@ datasetButtons.forEach((button) => {
 btnAtualizar.addEventListener('click', () => {
     carregarDataset(datasetSelecionado);
     carregarResumoWorker();
+    carregarHistoricoSync();
 });
 
 aplicarTemaSalvo();
 
 carregarDataset(datasetSelecionado);
 carregarResumoWorker();
+carregarHistoricoSync();

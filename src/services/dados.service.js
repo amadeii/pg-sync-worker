@@ -2,7 +2,7 @@ import { consultarFirebird } from '../firebird.js';
 
 export async function listarEmpresa() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM EMPRESA
     `);
 
@@ -11,7 +11,7 @@ export async function listarEmpresa() {
 
 export async function listarEstoque() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM ESTOQUE
     `);
 
@@ -20,7 +20,7 @@ export async function listarEstoque() {
 
 export async function listarFornecedores() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM FORNECEDOR
     `);
 
@@ -29,7 +29,7 @@ export async function listarFornecedores() {
 
 export async function listarNotasFiscais() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM NOTA_FISCAL
     `);
 
@@ -38,7 +38,7 @@ export async function listarNotasFiscais() {
 
 export async function listarNotaProdutos() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM NOTA_PRODUTOS
     `);
 
@@ -47,7 +47,7 @@ export async function listarNotaProdutos() {
 
 export async function listarPedidos() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM PEDIDO
     `);
 
@@ -56,7 +56,7 @@ export async function listarPedidos() {
 
 export async function listarPedidoDetalhes() {
     const resultado = await consultarFirebird(`
-        SELECT FIRST 50 *
+        SELECT FIRST 100 *
         FROM PEDIDO_DETALHE
     `);
 
@@ -65,7 +65,7 @@ export async function listarPedidoDetalhes() {
 
 export async function listarVendedores() {
     const resultado = await consultarFirebird(`
-        SELECT 
+        SELECT FIRST 100 *
         FROM VENDEDOR
     `);
 

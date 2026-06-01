@@ -1,18 +1,20 @@
 import { consultarFirebird } from './firebird.js';
+import { logError, logInfo } from './logger.js';
 
 async function testarConexaoFirebird() {
     try {
-        console.log('Testando conexão com Firebird...');
+        logInfo('Testando conexão com Firebird');
 
         const resultado = await consultarFirebird(`
       SELECT 1 AS TESTE
       FROM RDB$DATABASE
     `);
 
-        console.log('Conexão com Firebird funcionando!');
-        console.log(resultado);
+        logInfo('Conexão com Firebird funcionando', {
+            resultado,
+        });
     } catch (error) {
-        console.error('Erro ao conectar no Firebird:', error.message);
+        logError('Erro ao conectar no Firebird', error);
     }
 }
 

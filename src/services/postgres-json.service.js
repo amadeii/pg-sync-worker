@@ -1,4 +1,6 @@
-const pool = require('../database');
+import { pool } from '../database.js';
+import { logSync } from '../logger.js';
+import { registrarSyncHistory } from './sync-history.service.js';
 
 function descobrirCodigoOrigem(item) {
     return (
@@ -23,40 +25,50 @@ async function limparTabelaJsonRaw(tabelaOrigem) {
 }
 
 async function salvarJsonRaw(tabelaOrigem, dados) {
+    const inicio = Date.now();
+    let totalInseridos = 0;
+
     if (!Array.isArray(dados)) {
         throw new Error('Os dados precisam ser um array de objetos JSON');
     }
 
-    if (dados.length === 0) {
-        return {
-            inseridos: 0,
-        };
-    }
+    try {
+        if (dados.length === 0) {
+            await registrarSyncHistory({
+                tabela: tabelaOrigem,
+                quantidadeRegistros: 0,
+                duracaoMs: Date.now() - inicio,
+                status: 'sucesso',
+            });
 
-    const tamanhoDoLote = 500;
-    let totalInseridos = 0;
+            return {
+                inseridos: 0,
+            };
+        }
 
-    for (let i = 0; i < dados.length; i += tamanhoDoLote) {
-        const lote = dados.slice(i, i + tamanhoDoLote);
+        const tamanhoDoLote = 500;
 
-        const valores = [];
-        const parametros = [];
+        for (let i = 0; i < dados.length; i += tamanhoDoLote) {
+            const lote = dados.slice(i, i + tamanhoDoLote);
 
-        lote.forEach((item, index) => {
-            const posicao = index * 3;
+            const valores = [];
+            const parametros = [];
 
-            const codigoOrigem = descobrirCodigoOrigem(item);
+            lote.forEach((item, index) => {
+                const posicao = index * 3;
 
-            parametros.push(tabelaOrigem);
-            parametros.push(codigoOrigem ? String(codigoOrigem) : null);
-            parametros.push(JSON.stringify(item));
+                const codigoOrigem = descobrirCodigoOrigem(item);
 
-            valores.push(
-                `($${posicao + 1}, $${posicao + 2}, $${posicao + 3}::json)`
-            );
-        });
+                parametros.push(tabelaOrigem);
+                parametros.push(codigoOrigem ? String(codigoOrigem) : null);
+                parametros.push(JSON.stringify(item));
 
-        const sql = `
+                valores.push(
+                    `($${posicao + 1}, $${posicao + 2}, $${posicao + 3}::json)`
+                );
+            });
+
+            const sql = `
       INSERT INTO firebird_json_raw (
         tabela_origem,
         codigo_origem,
@@ -65,19 +77,42 @@ async function salvarJsonRaw(tabelaOrigem, dados) {
       VALUES ${valores.join(', ')}
     `;
 
-        await pool.query(sql, parametros);
+            await pool.query(sql, parametros);
 
-        totalInseridos += lote.length;
+            totalInseridos += lote.length;
 
-        console.log(`Inseridos até agora em ${tabelaOrigem}: ${totalInseridos}`);
+            logSync(`Inseridos ate agora em ${tabelaOrigem}`, {
+                tabela: tabelaOrigem,
+                totalInseridos,
+            });
+        }
+
+        await registrarSyncHistory({
+            tabela: tabelaOrigem,
+            quantidadeRegistros: totalInseridos,
+            duracaoMs: Date.now() - inicio,
+            status: 'sucesso',
+        });
+
+        return {
+            inseridos: totalInseridos,
+        };
+    } catch (error) {
+        await registrarSyncHistory({
+            tabela: tabelaOrigem,
+            quantidadeRegistros: totalInseridos,
+            duracaoMs: Date.now() - inicio,
+            status: 'erro',
+            erro: error.message,
+        });
+
+        throw error;
     }
-
-    return {
-        inseridos: totalInseridos,
-    };
 }
 
 async function listarJsonRaw({ tabelaOrigem, limit = 50, offset = 0 }) {
+    const limiteSeguro = Math.min(Number(limit) || 50, 100);
+
     const resultado = await pool.query(
         `
       SELECT
@@ -91,7 +126,7 @@ async function listarJsonRaw({ tabelaOrigem, limit = 50, offset = 0 }) {
       ORDER BY id ASC
       LIMIT $2 OFFSET $3
     `,
-        [tabelaOrigem, limit, offset]
+        [tabelaOrigem, limiteSeguro, offset]
     );
 
     return resultado.rows;
@@ -110,7 +145,7 @@ async function contarJsonRaw(tabelaOrigem) {
     return resultado.rows[0];
 }
 
-module.exports = {
+export {
     limparTabelaJsonRaw,
     salvarJsonRaw,
     listarJsonRaw,

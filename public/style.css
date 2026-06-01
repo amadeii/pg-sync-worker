@@ -70,9 +70,16 @@ body {
 }
 
 #btnTema::after {
-    content: "🌙";
-    font-size: 20px;
-    line-height: 1;
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #111827;
+    box-shadow: inset -6px 0 0 #ffffff;
+    transform: translate(-50%, -50%) rotate(-18deg);
 }
 
 #btnTema:hover {
@@ -168,6 +175,15 @@ body {
     margin-bottom: 24px;
 }
 
+.history-panel {
+    margin-bottom: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+}
+
 .worker-title {
     display: flex;
     justify-content: space-between;
@@ -230,6 +246,38 @@ body {
 }
 
 .worker-card:nth-child(5) strong {
+    color: var(--danger);
+}
+
+.history-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 12px;
+}
+
+.history-wrapper table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.success {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--success);
+}
+
+.status-badge.error {
+    background: rgba(220, 38, 38, 0.12);
     color: var(--danger);
 }
 
@@ -516,6 +564,7 @@ body.dark-mode {
 
 body.dark-mode .card,
 body.dark-mode .worker-card,
+body.dark-mode .history-panel,
 body.dark-mode .table-section {
     background: var(--card);
     border-color: var(--border);
@@ -559,7 +608,19 @@ body.dark-mode #btnTema {
 }
 
 body.dark-mode #btnTema::after {
-    content: "☀️";
+    width: 16px;
+    height: 16px;
+    background: #facc15;
+    box-shadow:
+        0 -10px 0 -6px #facc15,
+        0 10px 0 -6px #facc15,
+        10px 0 0 -6px #facc15,
+        -10px 0 0 -6px #facc15,
+        7px 7px 0 -6px #facc15,
+        -7px -7px 0 -6px #facc15,
+        7px -7px 0 -6px #facc15,
+        -7px 7px 0 -6px #facc15;
+    transform: translate(-50%, -50%);
 }
 
 body.dark-mode #btnTema:hover {

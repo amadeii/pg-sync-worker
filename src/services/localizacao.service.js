@@ -2,7 +2,7 @@ import { consultarFirebird } from '../firebird.js';
 
 export async function listarCidades() {
   const resultado = await consultarFirebird(`
-    SELECT
+    SELECT FIRST 100
       CID_CODIGO AS ID,
       CID_COD_IBGE AS IBGE,
       CID_CIDADE AS CIDADE,
@@ -18,7 +18,7 @@ export async function listarCidades() {
 
 export async function listarBairros() {
   const resultado = await consultarFirebird(`
-    SELECT
+    SELECT FIRST 100
       BAI_CODIGO AS ID,
       BAI_BAIRRO AS BAIRRO,
       BAI_CEP AS CEP,
