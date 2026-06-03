@@ -6,6 +6,8 @@ import {
     listarJsonRaw,
     contarJsonRaw,
 } from '../services/postgres-json.service.js';
+import { transformarJsonRawParaTabelaEstruturada } from '../services/json-raw-to-structured.service.js';
+import { listarContasReceberDuplicatas } from '../services/financeiro.service.js';
 import { logError, logSync } from '../logger.js';
 
 const router = Router();
@@ -63,6 +65,56 @@ router.get('/:tabelaOrigem/resumo', async (req, res) => {
         });
     }
 });
+
+router.post(
+    '/financeiro/contas-receber/duplicatas/sincronizar-estruturado',
+    async (req, res) => {
+        const tabelaFinanceira = 'financeiro_contas_receber_duplicatas';
+
+        try {
+            logSync('Sincronizando duplicatas de contas a receber estruturadas', {
+                tabela: tabelaFinanceira,
+            });
+
+            const resultado = await listarContasReceberDuplicatas();
+
+            await limparTabelaJsonRaw(tabelaFinanceira);
+
+            const etapaRaw = await salvarJsonRaw(tabelaFinanceira, resultado);
+
+            const etapaEstruturada =
+                await transformarJsonRawParaTabelaEstruturada(
+                    tabelaFinanceira,
+                    tabelaFinanceira
+                );
+
+            res.json({
+                sucesso: true,
+                tabela_origem: tabelaFinanceira,
+                tabela_destino: tabelaFinanceira,
+                etapa_raw: etapaRaw,
+                etapa_estruturada: etapaEstruturada,
+                total_salvo_raw: etapaRaw.inseridos,
+                total_inserido_estruturado:
+                    etapaEstruturada.total_inserido,
+            });
+        } catch (error) {
+            logError(
+                'Erro ao sincronizar duplicatas de contas a receber estruturadas',
+                error,
+                {
+                    tabela: tabelaFinanceira,
+                }
+            );
+
+            res.status(500).json({
+                sucesso: false,
+                erro: 'Erro ao sincronizar duplicatas de contas a receber estruturadas',
+                detalhes: error.message,
+            });
+        }
+    }
+);
 
 router.get('/:tabelaOrigem', async (req, res) => {
     try {
