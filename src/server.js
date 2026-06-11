@@ -10,6 +10,7 @@ import diagnosticoRoutes from './routes/diagnostico.routes.js';
 import dadosRoutes from './routes/dados.routes.js';
 import financeiroRoutes from './routes/financeiro.routes.js';
 import postgresJsonRoutes from './routes/postgres-json.routes.js';
+import syncRoutes from './routes/sync.routes.js';
 import { logInfo } from './logger.js';
 import { inicializarSyncHistory } from './services/sync-history.service.js';
 
@@ -31,6 +32,7 @@ app.use('/api/fdb/diagnostico', diagnosticoRoutes);
 app.use('/api/fdb/dados', dadosRoutes);
 app.use('/api/fdb/financeiro', financeiroRoutes);
 app.use('/api/postgres-json', postgresJsonRoutes);
+app.use('/api/sync', syncRoutes);
 
 await inicializarSyncHistory();
 

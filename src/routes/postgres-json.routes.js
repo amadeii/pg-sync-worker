@@ -6,8 +6,7 @@ import {
     listarJsonRaw,
     contarJsonRaw,
 } from '../services/postgres-json.service.js';
-import { transformarJsonRawParaTabelaEstruturada } from '../services/json-raw-to-structured.service.js';
-import { listarTodasContasReceberDuplicatas } from '../services/financeiro.service.js';
+import { sincronizarFinanceiroContasReceberDuplicatas } from '../services/financeiro-contas-receber-sync.service.js';
 import { logError, logSync } from '../logger.js';
 
 const router = Router();
@@ -69,51 +68,24 @@ router.get('/:tabelaOrigem/resumo', async (req, res) => {
 router.post(
     '/financeiro/contas-receber/duplicatas/sincronizar-estruturado',
     async (req, res) => {
-        const tabelaFinanceira = 'financeiro_contas_receber_duplicatas';
-        let etapa = 'iniciar_sincronizacao';
-
         try {
-            logSync('Sincronizando duplicatas de contas a receber estruturadas', {
-                tabela: tabelaFinanceira,
-            });
+            const resultado =
+                await sincronizarFinanceiroContasReceberDuplicatas();
 
-            etapa = 'consultar_firebird';
-            const dadosFirebird = await listarTodasContasReceberDuplicatas();
-
-            etapa = 'limpar_json_raw';
-            await limparTabelaJsonRaw(tabelaFinanceira);
-
-            etapa = 'salvar_json_raw';
-            const etapaRaw = await salvarJsonRaw(tabelaFinanceira, dadosFirebird);
-
-            etapa = 'transformar_json_raw_para_estruturado';
-            const etapaEstruturada =
-                await transformarJsonRawParaTabelaEstruturada(
-                    tabelaFinanceira,
-                    tabelaFinanceira
-                );
-
-            res.json({
-                sucesso: true,
-                origem: tabelaFinanceira,
-                destino: tabelaFinanceira,
-                totalFirebird: dadosFirebird.length,
-                totalRawSalvo: etapaRaw.inseridos,
-                totalEstruturado: etapaEstruturada.total_inserido,
-            });
+            res.json(resultado);
         } catch (error) {
             logError(
                 'Erro ao sincronizar duplicatas de contas a receber estruturadas',
                 error,
                 {
-                    tabela: tabelaFinanceira,
-                    etapa,
+                    tabela: error.tabela,
+                    etapa: error.etapa,
                 }
             );
 
             res.status(500).json({
                 sucesso: false,
-                etapa,
+                etapa: error.etapa,
                 erro: error.message,
             });
         }
