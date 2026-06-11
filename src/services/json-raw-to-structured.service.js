@@ -36,6 +36,19 @@ function normalizarValorParaTexto(valor) {
     return String(valor);
 }
 
+async function truncarTabelaDestinoSeExistir(nomeTabelaDestino) {
+    const resultado = await pool.query(
+        'SELECT to_regclass($1) AS tabela_destino',
+        [nomeTabelaDestino]
+    );
+
+    if (!resultado.rows[0]?.tabela_destino) {
+        return;
+    }
+
+    await pool.query(`TRUNCATE TABLE ${quoteTableName(nomeTabelaDestino)}`);
+}
+
 export async function transformarJsonRawParaTabelaEstruturada(
     tabelaOrigem,
     nomeTabelaDestino
@@ -46,7 +59,14 @@ export async function transformarJsonRawParaTabelaEstruturada(
     const registros = registrosRaw.map(extrairRegistro);
 
     if (!Array.isArray(registros) || registros.length === 0) {
-        throw new Error('Nao existem registros JSON raw para transformar');
+        await truncarTabelaDestinoSeExistir(nomeTabelaDestino);
+
+        return {
+            tabela_origem: tabelaOrigem,
+            tabela_destino: nomeTabelaDestino,
+            total_lido: 0,
+            total_inserido: 0,
+        };
     }
 
     const possuiRegistroInvalido = registros.some(

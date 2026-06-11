@@ -13,3 +13,17 @@ export async function listarClientes() {
 
   return resultado;
 }
+
+export async function listarTodosClientes() {
+  const resultado = await consultarFirebird(`
+        SELECT
+            CL_CODIGO AS ID,
+            CL_RAZAO AS RAZAO,
+            CL_FANTASIA AS FANTASIA,
+            CL_CLASSIFICACAO_CLIENTE AS CLASSIFICACAO
+        FROM CLIENTES
+        ORDER BY CL_CODIGO DESC
+    `);
+
+  return resultado;
+}
