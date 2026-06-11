@@ -2,6 +2,8 @@ import { pool } from '../database.js';
 import { logSync } from '../logger.js';
 import { registrarSyncHistory } from './sync-history.service.js';
 
+let tabelaJsonRawInicializada = false;
+
 function descobrirCodigoOrigem(item) {
     return (
         item.CODIGO ||
@@ -14,7 +16,27 @@ function descobrirCodigoOrigem(item) {
     );
 }
 
-async function limparTabelaJsonRaw(tabelaOrigem) {
+async function garantirTabelaFirebirdJsonRaw() {
+    if (tabelaJsonRawInicializada) {
+        return;
+    }
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS firebird_json_raw (
+        id SERIAL PRIMARY KEY,
+        tabela_origem TEXT NOT NULL,
+        codigo_origem TEXT,
+        dados JSONB NOT NULL,
+        sincronizado_em TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    tabelaJsonRawInicializada = true;
+}
+
+async function limparJsonRawPorOrigem(tabelaOrigem) {
+    await garantirTabelaFirebirdJsonRaw();
+
     await pool.query(
         `
       DELETE FROM firebird_json_raw
@@ -24,9 +46,15 @@ async function limparTabelaJsonRaw(tabelaOrigem) {
     );
 }
 
+async function limparTabelaJsonRaw(tabelaOrigem) {
+    await limparJsonRawPorOrigem(tabelaOrigem);
+}
+
 async function salvarJsonRaw(tabelaOrigem, dados) {
     const inicio = Date.now();
     let totalInseridos = 0;
+
+    await garantirTabelaFirebirdJsonRaw();
 
     if (!Array.isArray(dados)) {
         throw new Error('Os dados precisam ser um array de objetos JSON');
@@ -64,7 +92,7 @@ async function salvarJsonRaw(tabelaOrigem, dados) {
                 parametros.push(JSON.stringify(item));
 
                 valores.push(
-                    `($${posicao + 1}, $${posicao + 2}, $${posicao + 3}::json)`
+                    `($${posicao + 1}, $${posicao + 2}, $${posicao + 3}::jsonb)`
                 );
             });
 
@@ -111,6 +139,8 @@ async function salvarJsonRaw(tabelaOrigem, dados) {
 }
 
 async function listarJsonRaw({ tabelaOrigem, limit = 50, offset = 0 }) {
+    await garantirTabelaFirebirdJsonRaw();
+
     const limiteSeguro = Math.min(Number(limit) || 50, 100);
 
     const resultado = await pool.query(
@@ -132,7 +162,30 @@ async function listarJsonRaw({ tabelaOrigem, limit = 50, offset = 0 }) {
     return resultado.rows;
 }
 
+async function listarTodosJsonRaw(tabelaOrigem) {
+    await garantirTabelaFirebirdJsonRaw();
+
+    const resultado = await pool.query(
+        `
+      SELECT
+        id,
+        tabela_origem,
+        codigo_origem,
+        dados,
+        sincronizado_em
+      FROM firebird_json_raw
+      WHERE tabela_origem = $1
+      ORDER BY id ASC
+    `,
+        [tabelaOrigem]
+    );
+
+    return resultado.rows;
+}
+
 async function contarJsonRaw(tabelaOrigem) {
+    await garantirTabelaFirebirdJsonRaw();
+
     const resultado = await pool.query(
         `
       SELECT COUNT(*)::int AS total
@@ -146,8 +199,11 @@ async function contarJsonRaw(tabelaOrigem) {
 }
 
 export {
+    garantirTabelaFirebirdJsonRaw,
+    limparJsonRawPorOrigem,
     limparTabelaJsonRaw,
     salvarJsonRaw,
     listarJsonRaw,
+    listarTodosJsonRaw,
     contarJsonRaw,
 };

@@ -11,6 +11,13 @@ export async function listarContasReceberDuplicatas() {
     `);
 }
 
+export async function listarTodasContasReceberDuplicatas() {
+    return consultarFirebird(`
+        SELECT *
+        FROM CRCDUPLICATA
+    `);
+}
+
 export async function listarContasReceberBoletosAnexos() {
     return consultarFirebird(`
         SELECT FIRST 100 *

@@ -1,5 +1,5 @@
 import { pool } from '../database.js';
-import { listarJsonRaw } from './postgres-json.service.js';
+import { listarTodosJsonRaw } from './postgres-json.service.js';
 
 function quoteIdentifier(identifier) {
     if (!identifier || typeof identifier !== 'string') {
@@ -41,10 +41,7 @@ export async function transformarJsonRawParaTabelaEstruturada(
     nomeTabelaDestino
 ) {
     // Busca os registros raw ja salvos no PostgreSQL para a tabela de origem.
-    const registrosRaw = await listarJsonRaw({
-        tabelaOrigem,
-        limit: Number.MAX_SAFE_INTEGER,
-    });
+    const registrosRaw = await listarTodosJsonRaw(tabelaOrigem);
 
     const registros = registrosRaw.map(extrairRegistro);
 
@@ -73,33 +70,47 @@ export async function transformarJsonRawParaTabelaEstruturada(
         .map((coluna) => `${quoteIdentifier(coluna)} TEXT`)
         .join(', ');
 
-    await pool.query(`
-        CREATE TABLE IF NOT EXISTS ${tabelaDestinoSql} (
-            ${colunasSql}
-        )
-    `);
-
+    const client = await pool.connect();
     let totalInserido = 0;
 
-    // Insere os valores com parametros; somente nomes de tabela/coluna sao interpolados.
-    for (const registro of registros) {
-        const nomesColunasSql = colunas.map(quoteIdentifier).join(', ');
-        const parametrosSql = colunas
-            .map((_, index) => `$${index + 1}`)
-            .join(', ');
-        const valores = colunas.map((coluna) =>
-            normalizarValorParaTexto(registro[coluna])
-        );
+    try {
+        await client.query('BEGIN');
 
-        const resultado = await pool.query(
-            `
-            INSERT INTO ${tabelaDestinoSql} (${nomesColunasSql})
-            VALUES (${parametrosSql})
-            `,
-            valores
-        );
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS ${tabelaDestinoSql} (
+                ${colunasSql}
+            )
+        `);
 
-        totalInserido += resultado.rowCount;
+        await client.query(`TRUNCATE TABLE ${tabelaDestinoSql}`);
+
+        // Mantem a limpeza e insercao atomicas para evitar destino parcial.
+        for (const registro of registros) {
+            const nomesColunasSql = colunas.map(quoteIdentifier).join(', ');
+            const parametrosSql = colunas
+                .map((_, index) => `$${index + 1}`)
+                .join(', ');
+            const valores = colunas.map((coluna) =>
+                normalizarValorParaTexto(registro[coluna])
+            );
+
+            const resultado = await client.query(
+                `
+                INSERT INTO ${tabelaDestinoSql} (${nomesColunasSql})
+                VALUES (${parametrosSql})
+                `,
+                valores
+            );
+
+            totalInserido += resultado.rowCount;
+        }
+
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
     }
 
     return {
